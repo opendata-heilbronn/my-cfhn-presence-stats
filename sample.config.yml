@@ -1,0 +1,6 @@
+database:
+  user: "root" # database user
+  password: "12345678" # database user password
+  host: "127.0.0.1:3306" # database host including port
+  name: "my_cfhn_presence_stats" # database name
+presence_server: "https://presence.my.cfhn.it/presence/" # API endpoint
