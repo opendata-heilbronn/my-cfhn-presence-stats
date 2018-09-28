@@ -19,8 +19,8 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
-	"github.com/dghubble/sling"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
 )
@@ -30,21 +30,23 @@ var (
 	sqlInsertPresence *sql.Stmt
 )
 
-type presence struct {
-	Username string `json:"username,omitempty"`
-	Name     string `json:"name,omitempty"`
-	LastSeen string `json:"lastSeen,omitempty"`
-}
-
 func main() {
+	arguments := os.Args[1:]
+	if len(arguments) != 1 || (arguments[0] != "test" && arguments[0] != "fetch") {
+		log.Println("./my-cfhn-presence-stats [argument]")
+		log.Println(" * \"test\" the config, database connection and connection to the presence API")
+		log.Println(" * \"fetch\" query the presence API and store the data in the database")
+		return
+	}
+
 	config = viper.New()
 	config.SetConfigName("config")
 	config.AddConfigPath(".")
 	if err := config.ReadInConfig(); err != nil {
-		log.Fatalf("Fatal error config file: %s \n", err)
+		log.Fatalf("[✘ ] Fatal error config file: %s \n", err)
 		return
 	}
-	log.Println("Config file loaded")
+	log.Println("[✓ ] Config file loaded")
 
 	// Open database connection
 	var err error
@@ -52,33 +54,27 @@ func main() {
 		config.GetString("database.user")+":"+config.GetString("database.password")+
 			"@tcp("+config.GetString("database.host")+")/"+config.GetString("database.name"))
 	if err != nil {
-		log.Fatalf("Fatal error database connection: %s \n", err)
+		log.Fatalf("[✘ ] Fatal error database connection: %s \n", err)
 		return
 	}
-	log.Println("Database connection established")
+	log.Println("[✓ ] Database connection established")
 	defer db.Close()
 
-	// Get presences
-	client := &http.Client{}
-	presences := new([]presence)
-	_, err = sling.New().Client(client).Get(config.GetString("presence_server")).ReceiveSuccess(presences)
-	if err != nil {
-		log.Fatalf("Fatal error when trying to get presences: %s \n", err)
-		return
-	}
-
-	// Store the presences
 	sqlInsertPresence, err = db.Prepare("INSERT INTO `presences` (`username`, `datetime`) VALUES (?,?)")
 	if err != nil {
-		log.Fatalf("Fatal error database could not prepare insert: %s \n", err)
+		log.Fatalf("[✘ ] Fatal error database could not prepare insert: %s \n", err)
 		return
 	}
-	for _, p := range *presences {
-		if _, err = sqlInsertPresence.Exec(p.Username, p.LastSeen); err != nil {
-			log.Println("Failed to insert presence", err)
-		}
-	}
 
-	// Done
-	log.Println("Presences inserted")
+	if arguments[0] == "test" {
+		client := &http.Client{}
+		_, err = client.Get(config.GetString("presence_server"))
+		if err != nil {
+			log.Fatalf("[✘ ] Could not connect to resence API: %s", err)
+			return
+		}
+		log.Println("[✓ ] Presence API is reachable")
+	} else if arguments[0] == "fetch" {
+		fetchPresencesFromAPI()
+	}
 }
