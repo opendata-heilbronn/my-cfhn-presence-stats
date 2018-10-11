@@ -14,3 +14,6 @@ my-cfhn-presence-stats
 
 # Config
 /config*.yml
+
+# Web
+/web/node_modules
