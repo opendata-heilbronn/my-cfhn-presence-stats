@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-my-cfhn-presence-collector
+my-cfhn-presence-stats
 
 # Test binary, build with `go test -c`
 *.test

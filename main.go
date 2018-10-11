@@ -28,6 +28,7 @@ import (
 var (
 	config            *viper.Viper
 	sqlInsertPresence *sql.Stmt
+	db                *sql.DB
 )
 
 func main() {
@@ -50,7 +51,7 @@ func main() {
 
 	// Open database connection
 	var err error
-	db, err := sql.Open("mysql",
+	db, err = sql.Open("mysql",
 		config.GetString("database.user")+":"+config.GetString("database.password")+
 			"@tcp("+config.GetString("database.host")+")/"+config.GetString("database.name"))
 	if err != nil {
@@ -68,7 +69,7 @@ func main() {
 
 	if arguments[0] == "test" {
 		client := &http.Client{}
-		_, err = client.Get(config.GetString("presence_server"))
+		_, err = client.Get(config.GetString("presence_api.server"))
 		if err != nil {
 			log.Fatalf("[✘ ] Could not connect to resence API: %s", err)
 			return
