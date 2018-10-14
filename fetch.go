@@ -16,6 +16,7 @@ package main
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -58,7 +59,7 @@ func fetchPresencesFromAPI() {
 	_, err = sling.New().
 		Client(client).
 		Get(config.GetString("presence_api.server")).
-		Set("Authorization", token).
+		Set("Authorization", fmt.Sprintf("Bearer %s", token)).
 		ReceiveSuccess(presences)
 	if err != nil {
 		log.Fatalf("[✘ ] Fatal error when trying to get presences: %s \n", err)
