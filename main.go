@@ -20,6 +20,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
@@ -62,6 +63,10 @@ func main() {
 	defer db.Close()
 
 	if arguments[0] == "test" {
+		loc, _ := time.LoadLocation("Europe/Berlin")
+		now := time.Now().In(loc)
+		log.Printf("[？] %s", now)
+
 		client := &http.Client{}
 		_, err = client.Get(config.GetString("presence_api.server"))
 		if err != nil {
