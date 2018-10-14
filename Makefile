@@ -6,6 +6,3 @@ all:
 fetch:
 	go build
 	my-cfhn-presence-stats fetch
-
-watch: all
-	cd web && make watch-js

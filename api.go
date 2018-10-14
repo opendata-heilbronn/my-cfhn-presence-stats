@@ -26,6 +26,7 @@ import (
 type apiResponse struct {
 	Total            []userVisits `json:"user_total"`
 	LastWeek         []userVisits `json:"user_lastweek"`
+	TotalAlone       []userVisits `json:"user_alone"`
 	LastWeekOverview []timeVists  `json:"overview_lastweek"`
 }
 
@@ -48,6 +49,7 @@ func apiGetStats(w http.ResponseWriter, r *http.Request) {
 	var response apiResponse
 	response.Total = totalVisits()
 	response.LastWeek = lastWeekVisits()
+	response.TotalAlone = totalAloneVisits()
 	response.LastWeekOverview = lastWeekUserCount()
 	json.NewEncoder(w).Encode(response)
 }
@@ -92,6 +94,45 @@ func lastWeekVisits() []userVisits {
 	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS presences" +
 		" FROM `presences`" +
 		" WHERE `datetime` > DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -7 DAY)" +
+		" GROUP BY `username`" +
+		" ORDER BY `presences` DESC LIMIT 10")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+
+	rows, err := sql.Query()
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not run query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+	defer rows.Close()
+
+	visits := make([]userVisits, 0)
+	for rows.Next() {
+		var v userVisits
+		if err := rows.Scan(&v.Username, &v.Visits); err != nil {
+			log.Fatal(err)
+		}
+
+		visits = append(visits, v)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return visits
+}
+
+func totalAloneVisits() []userVisits {
+
+	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS presences" +
+		" FROM `presences`" +
+		" WHERE `datetime` IN (SELECT `datetime`" +
+		"  FROM `presences`" +
+		"  GROUP BY `datetime`" +
+		"  HAVING COUNT(*) = 1)" +
 		" GROUP BY `username`" +
 		" ORDER BY `presences` DESC LIMIT 10")
 	if err != nil {
