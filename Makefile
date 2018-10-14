@@ -6,3 +6,7 @@ all:
 fetch:
 	go build
 	my-cfhn-presence-stats fetch
+
+test:
+	go build
+	my-cfhn-presence-stats test
