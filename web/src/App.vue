@@ -13,6 +13,13 @@
 		<ul>
 			<li v-for="v in user_lastweek" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 		</ul>
+		</ul>
+
+		<h3>Top 10 (Forever alone)</h3>
+
+		<ul>
+			<li v-for="v in user_alone" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+		</ul>
 
 		<h3>Die letzte Woche im Überblick</h3>
 
@@ -75,6 +82,7 @@
 					.then(response => {
 						this.user_total = response.data.user_total;
 						this.user_lastweek = response.data.user_lastweek;
+						this.user_alone = response.data.user_alone;
 						this.overview_lastweek = {};
 						response.data.overview_lastweek.forEach(function(timeVisit) {
 							if (!this.overview_lastweek.hasOwnProperty(timeVisit.day)) {
