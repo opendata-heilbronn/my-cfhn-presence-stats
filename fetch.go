@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/dghubble/sling"
 	_ "github.com/go-sql-driver/mysql"
@@ -53,6 +54,10 @@ func fetchPresencesFromAPI() {
 		return
 	}
 
+	loc, _ := time.LoadLocation("Europe/Berlin")
+	now := time.Now().In(loc)
+	currentTime := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), (now.Minute()/5)*5, 0, 0, loc)
+
 	// Get presences
 	client := &http.Client{}
 	presences := new([]presence)
@@ -68,13 +73,12 @@ func fetchPresencesFromAPI() {
 
 	// Store the presences
 	for _, p := range *presences {
-		if _, err = sqlInsertPresence.Exec(p.Username, p.LastSeen); err != nil {
+		if _, err = sqlInsertPresence.Exec(p.Username, currentTime); err != nil {
 			log.Println("[✘ ] Failed to insert presence", err)
+			continue
 		}
+		log.Printf("[✓ ] Added %s", p.Username)
 	}
-
-	// Done
-	log.Println("[✓ ] Presences inserted")
 }
 
 func fetchPresenceAuthToken() string {
