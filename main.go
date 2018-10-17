@@ -20,23 +20,24 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
 )
 
 var (
-	config            *viper.Viper
-	sqlInsertPresence *sql.Stmt
-	db                *sql.DB
+	config *viper.Viper
+	db     *sql.DB
 )
 
 func main() {
 	arguments := os.Args[1:]
-	if len(arguments) != 1 || (arguments[0] != "test" && arguments[0] != "fetch") {
+	if len(arguments) != 1 || (arguments[0] != "test" && arguments[0] != "fetch" && arguments[0] != "server") {
 		log.Println("./my-cfhn-presence-stats [argument]")
 		log.Println(" * \"test\" the config, database connection and connection to the presence API")
 		log.Println(" * \"fetch\" query the presence API and store the data in the database")
+		log.Println(" * \"server\" start the server which servers the stats")
 		return
 	}
 
@@ -61,13 +62,11 @@ func main() {
 	log.Println("[✓ ] Database connection established")
 	defer db.Close()
 
-	sqlInsertPresence, err = db.Prepare("INSERT INTO `presences` (`username`, `datetime`) VALUES (?,?)")
-	if err != nil {
-		log.Fatalf("[✘ ] Fatal error database could not prepare insert: %s \n", err)
-		return
-	}
-
 	if arguments[0] == "test" {
+		loc, _ := time.LoadLocation("Europe/Berlin")
+		now := time.Now().In(loc)
+		log.Printf("[？] %s", now)
+
 		client := &http.Client{}
 		_, err = client.Get(config.GetString("presence_api.server"))
 		if err != nil {
@@ -77,5 +76,21 @@ func main() {
 		log.Println("[✓ ] Presence API is reachable")
 	} else if arguments[0] == "fetch" {
 		fetchPresencesFromAPI()
+	} else if arguments[0] == "server" {
+		// Create a mux for routing incoming requests
+		m := http.NewServeMux()
+
+		// All URLs will be handled by this function
+		m.HandleFunc("/api", apiGetStats)
+		m.HandleFunc("/web/", serveWebsite)
+
+		s := &http.Server{
+			Addr:    ":" + config.GetString("server.port"),
+			Handler: m,
+		}
+
+		log.Printf("[✓ ] Listening on port %d", config.GetInt("server.port"))
+
+		log.Fatal(s.ListenAndServe())
 	}
 }

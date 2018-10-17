@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/dghubble/sling"
 	_ "github.com/go-sql-driver/mysql"
@@ -47,16 +48,10 @@ func fetchPresencesFromAPI() {
 		return
 	}
 
-	sqlInsertPresence, err := db.Prepare("INSERT INTO `presences` (`username`, `datetime`) VALUES (?,?)")
-	if err != nil {
-		log.Fatalf("[✘ ] Fatal error database could not prepare insert: %s \n", err)
-		return
-	}
-
 	// Get presences
 	client := &http.Client{}
 	presences := new([]presence)
-	_, err = sling.New().
+	_, err := sling.New().
 		Client(client).
 		Get(config.GetString("presence_api.server")).
 		Set("Authorization", fmt.Sprintf("Bearer %s", token)).
@@ -66,15 +61,23 @@ func fetchPresencesFromAPI() {
 		return
 	}
 
-	// Store the presences
-	for _, p := range *presences {
-		if _, err = sqlInsertPresence.Exec(p.Username, p.LastSeen); err != nil {
-			log.Println("[✘ ] Failed to insert presence", err)
-		}
+	sqlInsertPresence, err := db.Prepare("INSERT INTO `presences` (`username`, `datetime`) VALUES (?,?)")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare insert: %s \n", err)
+		return
 	}
 
-	// Done
-	log.Println("[✓ ] Presences inserted")
+	now := time.Now().UTC()
+	tick := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), (now.Minute()/5)*5, 0, 0, now.Location())
+
+	// Store the presences
+	for _, p := range *presences {
+		if _, err = sqlInsertPresence.Exec(p.Username, tick); err != nil {
+			log.Println("[✘ ] Failed to insert presence", err)
+			continue
+		}
+		log.Printf("[✓ ] Added %s", p.Username)
+	}
 }
 
 func fetchPresenceAuthToken() string {
