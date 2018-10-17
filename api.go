@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -166,11 +168,11 @@ func totalAloneVisits() []userVisits {
 
 func lastWeekUserCount() []timeVists {
 
-	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%W %d.%m.%Y'), HOUR(`datetime`), COUNT(DISTINCT `username`) AS presences" +
+	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%d.%m.%Y %H'), COUNT(DISTINCT `username`) AS presences" +
 		" FROM `presences`" +
 		" WHERE `datetime` > DATE_ADD(CURRENT_DATE(), INTERVAL -7 DAY)" +
-		" GROUP BY DAY(`datetime`), DATE_FORMAT(`datetime`, '%W %d.%m.%Y'), HOUR(`datetime`)" +
-		" ORDER BY DAY(`datetime`) ASC, HOUR(`datetime`) ASC")
+		" GROUP BY DATE_FORMAT(`datetime`, '%d.%m.%Y %H')" +
+		" ORDER BY DATE_FORMAT(`datetime`, '%d.%m.%Y %H') ASC")
 	if err != nil {
 		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
 		return make([]timeVists, 0)
@@ -183,13 +185,21 @@ func lastWeekUserCount() []timeVists {
 	}
 	defer rows.Close()
 
+	loc, _ := time.LoadLocation("Europe/Berlin")
+
 	visits := make([]timeVists, 0)
 	for rows.Next() {
 		var v timeVists
+		var date string
 
-		if err := rows.Scan(&v.Day, &v.Hour, &v.Visits); err != nil {
+		if err := rows.Scan(&date, &v.Visits); err != nil {
 			log.Fatal(err)
 		}
+
+		datetime, _ := time.Parse("02.01.2006 15", date)
+		datetime = datetime.In(loc)
+		v.Day = datetime.Format("Mon 02.Jan.2006")
+		v.Hour, _ = strconv.Atoi(datetime.Format("15"))
 
 		visits = append(visits, v)
 	}
