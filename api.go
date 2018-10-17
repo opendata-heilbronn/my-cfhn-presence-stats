@@ -26,9 +26,12 @@ import (
 )
 
 type apiResponse struct {
+	GeneratedAt      string       `json:"generated_at"`
 	Total            []userVisits `json:"user_total"`
 	LastWeek         []userVisits `json:"user_lastweek"`
 	TotalAlone       []userVisits `json:"user_alone"`
+	DaysUsers        []userVisits `json:"day_users"`
+	DaysVisits       []userVisits `json:"day_visits"`
 	LastWeekOverview []timeVists  `json:"overview_lastweek"`
 }
 
@@ -49,16 +52,20 @@ func apiGetStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var response apiResponse
+	response.GeneratedAt = time.Now().Format(time.UnixDate)
 	response.Total = totalVisits()
 	response.LastWeek = lastWeekVisits()
 	response.TotalAlone = totalAloneVisits()
+	response.DaysUsers = daysUsers()
+	response.DaysVisits = daysVisits()
 	response.LastWeekOverview = lastWeekUserCount()
+
 	json.NewEncoder(w).Encode(response)
 }
 
 func totalVisits() []userVisits {
 
-	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS presences" +
+	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS `presences`" +
 		" FROM `presences`" +
 		" GROUP BY `username`" +
 		" ORDER BY `presences` DESC LIMIT 10")
@@ -93,7 +100,7 @@ func totalVisits() []userVisits {
 
 func lastWeekVisits() []userVisits {
 
-	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS presences" +
+	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS `presences`" +
 		" FROM `presences`" +
 		" WHERE `datetime` > DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -7 DAY)" +
 		" GROUP BY `username`" +
@@ -129,7 +136,7 @@ func lastWeekVisits() []userVisits {
 
 func totalAloneVisits() []userVisits {
 
-	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS presences" +
+	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS `presences`" +
 		" FROM `presences`" +
 		" WHERE `datetime` IN (SELECT `datetime`" +
 		"  FROM `presences`" +
@@ -168,7 +175,7 @@ func totalAloneVisits() []userVisits {
 
 func lastWeekUserCount() []timeVists {
 
-	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%d.%m.%Y %H'), COUNT(DISTINCT `username`) AS presences" +
+	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%d.%m.%Y %H'), COUNT(DISTINCT `username`) AS `presences`" +
 		" FROM `presences`" +
 		" WHERE `datetime` > DATE_ADD(CURRENT_DATE(), INTERVAL -7 DAY)" +
 		" GROUP BY DATE_FORMAT(`datetime`, '%d.%m.%Y %H')" +
@@ -200,6 +207,92 @@ func lastWeekUserCount() []timeVists {
 		datetime = datetime.In(loc)
 		v.Day = datetime.Format("Mon 02.Jan.2006")
 		v.Hour, _ = strconv.Atoi(datetime.Format("15"))
+
+		visits = append(visits, v)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return visits
+}
+
+func daysUsers() []userVisits {
+
+	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%d.%m.%Y'), COUNT(DISTINCT `username`) AS `presences`" +
+		" FROM `presences`" +
+		" GROUP BY DATE_FORMAT(`datetime`, '%d.%m.%Y')" +
+		" ORDER BY `presences` DESC LIMIT 10")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+
+	rows, err := sql.Query()
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not run query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+	defer rows.Close()
+
+	loc, _ := time.LoadLocation("Europe/Berlin")
+
+	visits := make([]userVisits, 0)
+	for rows.Next() {
+		var v userVisits
+		var date string
+
+		if err := rows.Scan(&date, &v.Visits); err != nil {
+			log.Fatal(err)
+		}
+
+		datetime, _ := time.Parse("02.01.2006", date)
+		datetime = datetime.In(loc)
+		v.Username = datetime.Format("Mon 02.Jan.2006")
+
+		visits = append(visits, v)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return visits
+}
+
+func daysVisits() []userVisits {
+
+	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%d.%m.%Y'), COUNT(*) AS `presences`" +
+		" FROM `presences`" +
+		" GROUP BY DATE_FORMAT(`datetime`, '%d.%m.%Y')" +
+		" ORDER BY `presences` DESC LIMIT 10")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+
+	rows, err := sql.Query()
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not run query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+	defer rows.Close()
+
+	loc, _ := time.LoadLocation("Europe/Berlin")
+
+	visits := make([]userVisits, 0)
+	for rows.Next() {
+		var v userVisits
+		var date string
+
+		if err := rows.Scan(&date, &v.Visits); err != nil {
+			log.Fatal(err)
+		}
+
+		datetime, _ := time.Parse("02.01.2006", date)
+		datetime = datetime.In(loc)
+		v.Username = datetime.Format("Mon 02.Jan.2006")
 
 		visits = append(visits, v)
 	}

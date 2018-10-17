@@ -1,25 +1,37 @@
 <template>
 	<div class="body">
 		<h1>My CFHN Presence Stats</h1>
+		<em>(generiert um {{generated_at}})</em>
 
 		<h3>Top 10 (gesamt)</h3>
 
-		<ul>
+		<ol>
 			<li v-for="v in user_total" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
-		</ul>
+		</ol>
 
 		<h3>Top 10 (letzte Woche)</h3>
 
-		<ul>
+		<ol>
 			<li v-for="v in user_lastweek" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
-		</ul>
-		</ul>
+		</ol>
 
 		<h3>Top 10 (Forever alone)</h3>
 
-		<ul>
+		<ol>
 			<li v-for="v in user_alone" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
-		</ul>
+		</ol>
+
+		<h3>Top 10 (Tage nach Besucher)</h3>
+
+		<ol>
+			<li v-for="v in day_users" v-bind="v">{{v.username}} ({{v.visits}} Besucher)</li>
+		</ol>
+
+		<h3>Top 10 (Tage nach Stunden)</h3>
+
+		<ol>
+			<li v-for="v in day_visits" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+		</ol>
 
 		<h3>Die letzte Woche im Überblick</h3>
 
@@ -48,8 +60,12 @@
 
 		data: function () {
 			return {
+				generated_at: '',
 				user_total: {},
 				user_lastweek: {},
+				user_alone: {},
+				day_users: {},
+				day_visist: {},
 				overview_lastweek: {},
 				hours: new Array(24).fill(0).map(function(x, i) { return i; })
 			};
@@ -80,9 +96,12 @@
 				axios
 					.get('/api')
 					.then(response => {
+						this.generated_at = response.data.generated_at;
 						this.user_total = response.data.user_total;
 						this.user_lastweek = response.data.user_lastweek;
 						this.user_alone = response.data.user_alone;
+						this.day_users = response.data.day_users;
+						this.day_visits = response.data.day_visits;
 						this.overview_lastweek = {};
 						response.data.overview_lastweek.forEach(function(timeVisit) {
 							if (!this.overview_lastweek.hasOwnProperty(timeVisit.day)) {
