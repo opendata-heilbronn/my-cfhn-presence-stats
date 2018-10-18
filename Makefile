@@ -7,6 +7,10 @@ fetch:
 	go build
 	my-cfhn-presence-stats fetch
 
+streaks:
+	go build
+	my-cfhn-presence-stats streaks
+
 test:
 	go build
 	my-cfhn-presence-stats test

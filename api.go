@@ -30,6 +30,8 @@ type apiResponse struct {
 	Total            []userVisits `json:"user_total"`
 	LastWeek         []userVisits `json:"user_lastweek"`
 	TotalAlone       []userVisits `json:"user_alone"`
+	LongestStreaks   []userVisits `json:"user_streaks"`
+	UserVisits       []userVisits `json:"user_visits"`
 	DaysUsers        []userVisits `json:"day_users"`
 	DaysVisits       []userVisits `json:"day_visits"`
 	LastWeekOverview []timeVists  `json:"overview_lastweek"`
@@ -56,6 +58,8 @@ func apiGetStats(w http.ResponseWriter, r *http.Request) {
 	response.Total = totalVisits()
 	response.LastWeek = lastWeekVisits()
 	response.TotalAlone = totalAloneVisits()
+	response.UserVisits = userVisitCount()
+	response.LongestStreaks = longestStreaks()
 	response.DaysUsers = daysUsers()
 	response.DaysVisits = daysVisits()
 	response.LastWeekOverview = lastWeekUserCount()
@@ -103,6 +107,76 @@ func lastWeekVisits() []userVisits {
 	sql, err := db.Prepare("SELECT `username`, COUNT(`datetime`) AS `presences`" +
 		" FROM `presences`" +
 		" WHERE `datetime` > DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -7 DAY)" +
+		" GROUP BY `username`" +
+		" ORDER BY `presences` DESC LIMIT 10")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+
+	rows, err := sql.Query()
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not run query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+	defer rows.Close()
+
+	visits := make([]userVisits, 0)
+	for rows.Next() {
+		var v userVisits
+		if err := rows.Scan(&v.Username, &v.Visits); err != nil {
+			log.Fatal(err)
+		}
+
+		visits = append(visits, v)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return visits
+}
+
+func longestStreaks() []userVisits {
+
+	sql, err := db.Prepare("SELECT `username`, MAX(`ticks`) AS `presences`" +
+		" FROM `streaks`" +
+		" GROUP BY `username`" +
+		" ORDER BY `presences` DESC LIMIT 10")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+
+	rows, err := sql.Query()
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not run query: %s \n", err)
+		return make([]userVisits, 0)
+	}
+	defer rows.Close()
+
+	visits := make([]userVisits, 0)
+	for rows.Next() {
+		var v userVisits
+		if err := rows.Scan(&v.Username, &v.Visits); err != nil {
+			log.Fatal(err)
+		}
+
+		visits = append(visits, v)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return visits
+}
+
+func userVisitCount() []userVisits {
+
+	sql, err := db.Prepare("SELECT `username`, COUNT(`ticks`) AS `presences`" +
+		" FROM `streaks`" +
 		" GROUP BY `username`" +
 		" ORDER BY `presences` DESC LIMIT 10")
 	if err != nil {

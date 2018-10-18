@@ -33,11 +33,16 @@ var (
 
 func main() {
 	arguments := os.Args[1:]
-	if len(arguments) != 1 || (arguments[0] != "test" && arguments[0] != "fetch" && arguments[0] != "server") {
+	if len(arguments) != 1 ||
+		(arguments[0] != "test" &&
+			arguments[0] != "fetch" &&
+			arguments[0] != "server" &&
+			arguments[0] != "streaks") {
 		log.Println("./my-cfhn-presence-stats [argument]")
 		log.Println(" * \"test\" the config, database connection and connection to the presence API")
 		log.Println(" * \"fetch\" query the presence API and store the data in the database")
 		log.Println(" * \"server\" start the server which servers the stats")
+		log.Println(" * \"streaks\" recalculate the streaks based on the presence data")
 		return
 	}
 
@@ -76,6 +81,8 @@ func main() {
 		log.Println("[✓ ] Presence API is reachable")
 	} else if arguments[0] == "fetch" {
 		fetchPresencesFromAPI()
+	} else if arguments[0] == "streaks" {
+		recalculateStreaksFromPresences()
 	} else if arguments[0] == "server" {
 		// Create a mux for routing incoming requests
 		m := http.NewServeMux()

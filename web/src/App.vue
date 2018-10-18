@@ -21,6 +21,18 @@
 			<li v-for="v in user_alone" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 		</ol>
 
+		<h3>Top 10 (Längster Streaks)</h3>
+
+		<ol>
+			<li v-for="v in user_streaks" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+		</ol>
+
+		<h3>Top 10 (Besuche)</h3>
+
+		<ol>
+			<li v-for="v in user_visits" v-bind="v">{{v.username}} ({{v.visits}})</li>
+		</ol>
+
 		<h3>Top 10 (Tage nach Besucher)</h3>
 
 		<ol>
@@ -64,6 +76,8 @@
 				user_total: {},
 				user_lastweek: {},
 				user_alone: {},
+				user_visits: {},
+				user_streaks: {},
 				day_users: {},
 				day_visist: {},
 				overview_lastweek: {},
@@ -100,6 +114,8 @@
 						this.user_total = response.data.user_total;
 						this.user_lastweek = response.data.user_lastweek;
 						this.user_alone = response.data.user_alone;
+						this.user_visits = response.data.user_visits;
+						this.user_streaks = response.data.user_streaks;
 						this.day_users = response.data.day_users;
 						this.day_visits = response.data.day_visits;
 						this.overview_lastweek = {};
