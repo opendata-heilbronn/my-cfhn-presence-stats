@@ -23,6 +23,7 @@ import (
 
 	"github.com/dghubble/sling"
 	_ "github.com/go-sql-driver/mysql"
+	cron "gopkg.in/robfig/cron.v2"
 )
 
 type presence struct {
@@ -38,6 +39,13 @@ type tokenRequest struct {
 
 type tokenResponse struct {
 	Token string `json:"token,omitempty"`
+}
+
+func fetchPresencesViaCron() {
+
+	c := cron.New()
+	c.AddFunc("*/5 * * * *", fetchPresencesFromAPI)
+	c.Start()
 }
 
 func fetchPresencesFromAPI() {

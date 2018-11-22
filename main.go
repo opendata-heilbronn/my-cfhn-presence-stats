@@ -84,6 +84,9 @@ func main() {
 	} else if arguments[0] == "streaks" {
 		recalculateStreaksFromPresences()
 	} else if arguments[0] == "server" {
+		// Fetch the presences via Cron
+		fetchPresencesViaCron()
+
 		// Create a mux for routing incoming requests
 		m := http.NewServeMux()
 
