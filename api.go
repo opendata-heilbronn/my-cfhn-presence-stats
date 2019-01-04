@@ -249,11 +249,11 @@ func totalAloneVisits() []userVisits {
 
 func lastWeekUserCount() []timeVists {
 
-	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%d.%m.%Y %H'), COUNT(DISTINCT `username`) AS `presences`" +
+	sql, err := db.Prepare("SELECT DATE_FORMAT(`datetime`, '%Y.%m.%d %H'), COUNT(DISTINCT `username`) AS `presences`" +
 		" FROM `presences`" +
 		" WHERE `datetime` > DATE_ADD(CURRENT_DATE(), INTERVAL -7 DAY)" +
-		" GROUP BY DATE_FORMAT(`datetime`, '%d.%m.%Y %H')" +
-		" ORDER BY DATE_FORMAT(`datetime`, '%d.%m.%Y %H') ASC")
+		" GROUP BY DATE_FORMAT(`datetime`, '%Y.%m.%d %H')" +
+		" ORDER BY DATE_FORMAT(`datetime`, '%Y.%m.%d %H') ASC")
 	if err != nil {
 		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
 		return make([]timeVists, 0)
@@ -277,7 +277,7 @@ func lastWeekUserCount() []timeVists {
 			log.Fatal(err)
 		}
 
-		datetime, _ := time.Parse("02.01.2006 15", date)
+		datetime, _ := time.Parse("2006.01.02 15", date)
 		datetime = datetime.In(loc)
 		v.Day = datetime.Format("Mon 02.Jan.2006")
 		v.Hour, _ = strconv.Atoi(datetime.Format("15"))
