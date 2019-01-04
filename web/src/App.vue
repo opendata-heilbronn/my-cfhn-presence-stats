@@ -5,7 +5,7 @@
 		<br style="clear: both;" />
 
 		<div style="width: 33%; float: left;">
-				<h3>Top 10 (gesamt)</h3>
+				<h3>Top 10 (Besuchszeit)</h3>
 
 				<ol>
 					<li v-for="v in user_total" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
@@ -13,7 +13,7 @@
 		</div>
 
 		<div style="width: 33%; float: left;">
-				<h3>Top 10 (letzte Woche)</h3>
+				<h3>Top 10 (Besuchszeit letzte Woche)</h3>
 
 				<ol>
 					<li v-for="v in user_lastweek" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
@@ -45,26 +45,20 @@
 		</div>
 
 		<div style="width: 49%; float: left;">
-				<h3>Top 10 (Tage nach Besucher)</h3>
-
-				<ol>
-					<li v-for="v in day_users" v-bind="v">{{v.username}} ({{v.visits}} Besucher)</li>
-				</ol>
-		</div>
-
-		<div style="width: 49%; float: left;">
-				<h3>Top 10 (Tage nach Stunden)</h3>
+				<h3>Top 10 (Tage nach Besuchszeit)</h3>
 
 				<ol>
 					<li v-for="v in day_visits" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 				</ol>
 		</div>
 
+		<div style="width: 49%; float: left;">
+				<h3>Top 10 (Tage nach Besuche)</h3>
 
-
-
-
-
+				<ol>
+					<li v-for="v in day_users" v-bind="v">{{v.username}} ({{v.visits}} Besucher)</li>
+				</ol>
+		</div>
 
 		<h3>Die letzte Woche im Überblick</h3>
 
