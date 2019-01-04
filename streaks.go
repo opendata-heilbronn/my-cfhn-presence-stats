@@ -20,6 +20,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
 type streak struct {
@@ -29,6 +30,19 @@ type streak struct {
 }
 
 func recalculateStreaksFromPresences() {
+
+	sqlCount, err := db.Prepare("SELECT COUNT(*) AS `num_presences`" +
+		" FROM `presences`")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
+		return
+	}
+
+	numRows := 0
+	row := sqlCount.QueryRow()
+	row.Scan(&numRows)
+
+	log.Printf("[✓ ] Number of presence: %d", numRows)
 
 	db.Query("TRUNCATE `streaks`")
 
@@ -59,7 +73,9 @@ func recalculateStreaksFromPresences() {
 	}
 	defer rows.Close()
 
+	bar := pb.StartNew(numRows)
 	for rows.Next() {
+		bar.Increment()
 		var username, datetime string
 		if err := rows.Scan(&username, &datetime); err != nil {
 			log.Fatal(err)
@@ -80,6 +96,9 @@ func recalculateStreaksFromPresences() {
 		}
 		// log.Printf("[✓ ] Added %s", p.Username)
 	}
+
+	bar.FinishPrint("Done")
+	log.Printf("[✓ ] Finished")
 
 	if err := rows.Err(); err != nil {
 		log.Fatal(err)
