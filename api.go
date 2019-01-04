@@ -175,7 +175,7 @@ func longestStreaks() []userVisits {
 
 func userVisitCount() []userVisits {
 
-	sql, err := db.Prepare("SELECT `username`, COUNT(`ticks`) AS `presences`" +
+	sql, err := db.Prepare("SELECT `username`, COUNT(DISTINCT DATE_FORMAT(DATE_ADD(`arrival`, INTERVAL -7 HOUR), '%Y.%m.%d')) AS `presences`" +
 		" FROM `streaks`" +
 		" GROUP BY `username`" +
 		" ORDER BY `presences` DESC LIMIT 10")
