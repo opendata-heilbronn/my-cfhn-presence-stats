@@ -4,11 +4,13 @@
 		<em>(generiert um {{generated_at}})</em>
 		<br style="clear: both;" />
 
+		<h2 v-html="current_year"></h2>
+
 		<div style="width: 33%; float: left;">
 				<h3>Top 10 (Besuchszeit)</h3>
 
 				<ol>
-					<li v-for="v in user_total" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+					<li v-for="v in year_user_total" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 				</ol>
 		</div>
 
@@ -16,7 +18,7 @@
 				<h3>Top 10 (Besuchszeit letzte Woche)</h3>
 
 				<ol>
-					<li v-for="v in user_lastweek" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+					<li v-for="v in year_user_lastweek" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 				</ol>
 		</div>
 
@@ -24,7 +26,7 @@
 				<h3>Top 10 (Besuche)</h3>
 
 				<ol>
-					<li v-for="v in user_visits" v-bind="v">{{v.username}} ({{v.visits}})</li>
+					<li v-for="v in year_user_visits" v-bind="v">{{v.username}} ({{v.visits}})</li>
 				</ol>
 		</div>
 
@@ -32,7 +34,7 @@
 				<h3>Top 10 (Forever alone)</h3>
 
 				<ol>
-					<li v-for="v in user_alone" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+					<li v-for="v in year_user_alone" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 				</ol>
 		</div>
 
@@ -40,7 +42,7 @@
 				<h3>Top 10 (Längster Streaks)</h3>
 
 				<ol>
-					<li v-for="v in user_streaks" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+					<li v-for="v in year_user_streaks" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 				</ol>
 		</div>
 
@@ -48,7 +50,7 @@
 				<h3>Top 10 (Tage nach Besuchszeit)</h3>
 
 				<ol>
-					<li v-for="v in day_visits" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+					<li v-for="v in year_day_visits" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
 				</ol>
 		</div>
 
@@ -56,10 +58,11 @@
 				<h3>Top 10 (Tage nach Besuche)</h3>
 
 				<ol>
-					<li v-for="v in day_users" v-bind="v">{{v.username}} ({{v.visits}} Besucher)</li>
+					<li v-for="v in year_day_users" v-bind="v">{{v.username}} ({{v.visits}} Besucher)</li>
 				</ol>
 		</div>
 
+		<div style="width: 100%; float: left;">
 		<h3>Die letzte Woche im Überblick</h3>
 
 		<ul>
@@ -76,6 +79,57 @@
 				</template>
 			</li>
 		</ul>
+		</div>
+
+		<h2>Allzeit</h2>
+
+		<div style="width: 49%; float: left;">
+				<h3>Top 10 (Besuchszeit)</h3>
+
+				<ol>
+					<li v-for="v in total_user_total" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+				</ol>
+		</div>
+
+		<div style="width: 49%; float: left;">
+				<h3>Top 10 (Besuche)</h3>
+
+				<ol>
+					<li v-for="v in total_user_visits" v-bind="v">{{v.username}} ({{v.visits}})</li>
+				</ol>
+		</div>
+
+		<div style="width: 49%; float: left;">
+				<h3>Top 10 (Forever alone)</h3>
+
+				<ol>
+					<li v-for="v in total_user_alone" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+				</ol>
+		</div>
+
+		<div style="width: 49%; float: left;">
+				<h3>Top 10 (Längster Streaks)</h3>
+
+				<ol>
+					<li v-for="v in total_user_streaks" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+				</ol>
+		</div>
+
+		<div style="width: 49%; float: left;">
+				<h3>Top 10 (Tage nach Besuchszeit)</h3>
+
+				<ol>
+					<li v-for="v in total_day_visits" v-bind="v">{{v.username}} ({{parseInt(v.visits * 5 / 60, 10)}}h {{v.visits * 5 % 60}}min)</li>
+				</ol>
+		</div>
+
+		<div style="width: 49%; float: left;">
+				<h3>Top 10 (Tage nach Besuche)</h3>
+
+				<ol>
+					<li v-for="v in total_day_users" v-bind="v">{{v.username}} ({{v.visits}} Besucher)</li>
+				</ol>
+		</div>
 	</div>
 </template>
 
@@ -88,13 +142,20 @@
 		data: function () {
 			return {
 				generated_at: '',
-				user_total: {},
-				user_lastweek: {},
-				user_alone: {},
-				user_visits: {},
-				user_streaks: {},
-				day_users: {},
-				day_visist: {},
+				current_year: '',
+				year_user_total: {},
+				year_user_lastweek: {},
+				year_user_alone: {},
+				year_user_visits: {},
+				year_user_streaks: {},
+				year_day_users: {},
+				year_day_visist: {},
+				total_user_total: {},
+				total_user_alone: {},
+				total_user_visits: {},
+				total_user_streaks: {},
+				total_day_users: {},
+				total_day_visist: {},
 				overview_lastweek: {},
 				hours: new Array(24).fill(0).map(function(x, i) { return i; })
 			};
@@ -126,13 +187,21 @@
 					.get('/api')
 					.then(response => {
 						this.generated_at = response.data.generated_at;
-						this.user_total = response.data.user_total;
-						this.user_lastweek = response.data.user_lastweek;
-						this.user_alone = response.data.user_alone;
-						this.user_visits = response.data.user_visits;
-						this.user_streaks = response.data.user_streaks;
-						this.day_users = response.data.day_users;
-						this.day_visits = response.data.day_visits;
+						this.current_year = response.data.current_year;
+						this.year_user_total = response.data.year_user_total;
+						this.year_user_lastweek = response.data.year_user_lastweek;
+						this.year_user_alone = response.data.year_user_alone;
+						this.year_user_visits = response.data.year_user_visits;
+						this.year_user_streaks = response.data.year_user_streaks;
+						this.year_day_users = response.data.year_day_users;
+						this.year_day_visits = response.data.year_day_visits;
+						this.total_user_total = response.data.total_user_total;
+						this.total_user_lastweek = response.data.total_user_lastweek;
+						this.total_user_alone = response.data.total_user_alone;
+						this.total_user_visits = response.data.total_user_visits;
+						this.total_user_streaks = response.data.total_user_streaks;
+						this.total_day_users = response.data.total_day_users;
+						this.total_day_visits = response.data.total_day_visits;
 						this.overview_lastweek = {};
 						response.data.overview_lastweek.forEach(function(timeVisit) {
 							if (!this.overview_lastweek.hasOwnProperty(timeVisit.day)) {
