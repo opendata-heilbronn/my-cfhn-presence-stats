@@ -29,6 +29,7 @@ import (
 type presence struct {
 	Username string `json:"username,omitempty"`
 	Name     string `json:"name,omitempty"`
+	Location string `json:"location,omitempty"`
 	LastSeen string `json:"lastSeen,omitempty"`
 }
 
@@ -69,7 +70,7 @@ func fetchPresencesFromAPI() {
 		return
 	}
 
-	sqlInsertPresence, err := db.Prepare("INSERT INTO `presences` (`username`, `datetime`) VALUES (?,?)")
+	sqlInsertPresence, err := db.Prepare("INSERT INTO `presences` (`username`, `location`, `datetime`) VALUES (?,?,?)")
 	if err != nil {
 		log.Fatalf("[✘ ] Fatal error database could not prepare insert: %s \n", err)
 		return
@@ -80,7 +81,7 @@ func fetchPresencesFromAPI() {
 
 	// Store the presences
 	for _, p := range *presences {
-		if _, err = sqlInsertPresence.Exec(p.Username, tick); err != nil {
+		if _, err = sqlInsertPresence.Exec(p.Username, p.Location, tick); err != nil {
 			log.Println("[✘ ] Failed to insert presence", err)
 			continue
 		}
