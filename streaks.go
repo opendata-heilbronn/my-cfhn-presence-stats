@@ -31,20 +31,34 @@ type streak struct {
 
 func recalculateStreaksFromPresences() {
 
+	sqlOffset, err := db.Prepare("SELECT `departure`" +
+		" FROM `streaks`" +
+		" ORDER BY `departure` DESC" +
+		" LIMIT 1")
+	if err != nil {
+		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
+		return
+	}
+
+	dateOffset := ""
+	row := sqlOffset.QueryRow()
+	row.Scan(&dateOffset)
+
 	sqlCount, err := db.Prepare("SELECT COUNT(*) AS `num_presences`" +
-		" FROM `presences`")
+		" FROM `presences`" +
+		" WHERE `datetime` > ?")
 	if err != nil {
 		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
 		return
 	}
 
 	numRows := 0
-	row := sqlCount.QueryRow()
+	row = sqlCount.QueryRow(dateOffset)
 	row.Scan(&numRows)
 
 	log.Printf("[✓ ] Number of presence: %d", numRows)
 
-	db.Query("TRUNCATE `streaks`")
+	// db.Query("TRUNCATE `streaks`")
 
 	sqlInsertStreak, err := db.Prepare("INSERT INTO `streaks` (`username`, `arrival`, `departure`, `ticks`) VALUES (?,?,?,1)")
 	if err != nil {
@@ -58,15 +72,16 @@ func recalculateStreaksFromPresences() {
 		return
 	}
 
-	sqlSelect, err := db.Prepare("SELECT *" +
+	sqlSelect, err := db.Prepare("SELECT `username`, `datetime`" +
 		" FROM `presences`" +
+		" WHERE `datetime` > ?" +
 		" ORDER BY `datetime` ASC")
 	if err != nil {
 		log.Fatalf("[✘ ] Fatal error database could not prepare query: %s \n", err)
 		return
 	}
 
-	rows, err := sqlSelect.Query()
+	rows, err := sqlSelect.Query(dateOffset)
 	if err != nil {
 		log.Fatalf("[✘ ] Fatal error database could not run query: %s \n", err)
 		return
